@@ -27,24 +27,17 @@ class DFA:
     """
     A class that is a deterministic finite state machine
     """
+    __transition_function: Dict[Tuple[str, str], str]
+
     def __init__(self, states: List[str], alphabet: List[str], transition_table: str,
                  start_state: str, accepted_states: List[str]) -> None:
-        if not uniqueness(alphabet):
-            raise Exception("Some of symbols is defined twice, but the alphabet must be unique!")
-        if not uniqueness(states):
-            raise Exception("Some of states is defined twice, but they must be unique!")
-        if not uniqueness(accepted_states):
-            print("Warning. Final states are not unique.")
-        if start_state not in states:
-            raise Exception(f"Start state ({start_state}) does not correspond to any of the possible states: {states}!")
 
-        for s in accepted_states:
-            if s not in states:
-                raise Exception(f"Final state ({s}) does not correspond to any of the possible states: {states}!")
+        DFA.data_valid(states, alphabet, start_state, accepted_states)
 
         self.__states = states
         self.__alphabet = alphabet
-        self.__transition_function = self.__make_tf_from_string(transition_table)
+        self.__transition_function = dict()
+        self.__make_tf_from_string(transition_table)
         self.__start_state = start_state
         self.__current_state = None
         self.__accepted_states = accepted_states
@@ -73,6 +66,46 @@ class DFA:
     def accepted_states(self) -> List[str]:
         return self.__accepted_states
 
+    @staticmethod
+    def data_valid(states: List[str], alphabet: List[str], start_state: str, accepted_states: List[str]) -> None:
+        """
+        Checking states, alphabet, final states for uniqueness,
+        initial state and final states for consistency with states
+        """
+        if not uniqueness(alphabet):
+            raise Exception("Some of symbols is defined twice, but the alphabet must be unique!")
+        if not uniqueness(states):
+            raise Exception("Some of states is defined twice, but they must be unique!")
+        if not uniqueness(accepted_states):
+            print("Warning. Final states are not unique.")
+        if start_state not in states:
+            raise Exception(f"Start state ({start_state}) does not correspond to any of the possible states: {states}!")
+
+        for s in accepted_states:
+            if s not in states:
+                raise Exception(f"Final state ({s}) does not correspond to any of the possible states: {states}!")
+
+    def __transition_valid(self, transition: str) -> None:
+        """
+        Checking the transition to permissibility
+        """
+        current_state, symbol, next_state = transition.split("-")
+
+        if current_state not in self.states:
+            raise Exception(f"Transmitted a non-existent state: {current_state}!")
+
+        if next_state not in self.states:
+            raise Exception(f"Transmitted a non-existent state {next_state}!")
+
+        if symbol not in self.alphabet:
+            raise Exception(f"A character ({symbol}) that is not in the alphabet is passed on!")
+
+        if (value := self.transition_function.get((current_state, symbol))) is not None:
+            if value != next_state:
+                raise Exception(f"Transition <{current_state}-{symbol}> is defined " +
+                                f"twice with different end states ({value} != {next_state})!")
+            print(f"Warning! Transition {transition} is defined twice")
+
     def __transition(self, symbol: str) -> DFAStatus:
         """
         Switching to a new state by the symbol
@@ -90,35 +123,19 @@ class DFA:
 
         return DFAStatus.REACHED_FINAL_STATE
 
-    def __make_tf_from_string(self, string: str) -> Dict[Tuple[str, str], str]:
+    def __make_tf_from_string(self, string: str) -> None:
         """
         Forming a transition function from a string of a set format:
 
         state-symbol-next_state,state2-symbol2-next_state2,...,stateN-symbolN-next_stateN
         """
-        tf = dict()
         transitions = string.split(",")
         for t in transitions:
-            cur_state, symbol, next_state = t.split("-")
-            if cur_state not in self.states:
-                raise Exception(f"Transmitted a non-existent state: {cur_state}!")
+            self.__transition_valid(t)
 
-            if next_state not in self.states:
-                raise Exception(f"Transmitted a non-existent state {next_state}!")
+            current_state, symbol, next_state = t.split("-")
 
-            if symbol not in self.alphabet:
-                raise Exception(f"A character ({symbol}) that is not in the alphabet is passed on!")
-
-            if (value := tf.get((cur_state, symbol))) is not None:
-                if value == next_state:
-                    print(f"Warning! Transition {t} is defined twice")
-                else:
-                    raise Exception(f"Transition {cur_state} + {symbol} is defined " +
-                                    f"twice with different end states ({value} != {next_state})!")
-
-            tf[(cur_state, symbol)] = next_state
-
-        return tf
+            self.__transition_function[(current_state, symbol)] = next_state
 
     def check_ownership(self, string) -> bool:
         """
