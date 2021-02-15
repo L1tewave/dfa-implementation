@@ -217,10 +217,10 @@ transition_table_b = 'q0-a-q1,q1-b-q2,q2-a-q1,q2-c-q0'
 
 nfa = DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
 
-PREDEFINED_FINITE_AUTOMATA = {"task a": dfa, "task b": nfa}
-TASK_INFO = {
-    "task a": "A deterministic finite automaton admitting in the alphabet {0, 1} all strings "
-              "in which each block of five consecutive characters contains at least two 0's.",
-    "task b": "A nondeterministic finite automaton with the number of states not exceeding 3 "
-              "for the language {ab, abc}*."
+PREDEFINED_FINITE_AUTOMATA = {"a": dfa, "b": nfa}
+PFA_TYPE_INFO = {
+    "a": "A deterministic finite automaton admitting in the alphabet {0, 1} all strings "
+         "in which each block of five consecutive characters contains at least two 0's.",
+    "b": "A nondeterministic finite automaton with the number of states not exceeding 3 "
+         "for the language {ab, abc}*."
 }

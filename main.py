@@ -1,6 +1,6 @@
 import sys
 
-from dfa import PREDEFINED_FINITE_AUTOMATA, TASK_INFO
+from dfa import PREDEFINED_FINITE_AUTOMATA, PFA_TYPE_INFO
 
 AVAILABLE_FINITE_AUTOMATA_TYPES = ["a", "b"]
 
@@ -16,18 +16,16 @@ if __name__ == "__main__":
         print("Required call format: main.py (a|b)\nTry again!")
         sys.exit(TOO_FEW_ARGS)
 
-    finite_automation_type = sys.argv[1]
+    finite_automation_type = sys.argv[1].lower()
 
-    if finite_automation_type.lower() not in AVAILABLE_FINITE_AUTOMATA_TYPES:
+    if finite_automation_type not in AVAILABLE_FINITE_AUTOMATA_TYPES:
         print(f"The type of finite state machine you have selected is not included "
               f"in the available ones: {AVAILABLE_FINITE_AUTOMATA_TYPES}\nTry again!")
         sys.exit(UNDEFINED_FINITE_AUTOMATON_TYPE)
 
-    task = "task " + finite_automation_type
+    finite_automaton = PREDEFINED_FINITE_AUTOMATA[finite_automation_type]
 
-    finite_automaton = PREDEFINED_FINITE_AUTOMATA[task]
-
-    print(f"\nYour choice is: {TASK_INFO[task]}\n")
+    print(f"\nYour choice is: {PFA_TYPE_INFO[finite_automation_type]}\n")
     print("Note: Press <Ctrl+C> or <Ctrl+Z> to exit from program")  # May not work in IDE
 
     try:
