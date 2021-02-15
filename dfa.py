@@ -218,6 +218,7 @@ transition_table_b = 'q0-a-q1,q1-b-q2,q2-a-q1,q2-c-q0'
 nfa = DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
 
 PREDEFINED_FINITE_AUTOMATA = {"a": dfa, "b": nfa}
+AVAILABLE_FINITE_AUTOMATA_TYPES = ["a", "b"]
 PFA_TYPE_INFO = {
     "a": "A deterministic finite automaton admitting in the alphabet {0, 1} all strings "
          "in which each block of five consecutive characters contains at least two 0's.",
