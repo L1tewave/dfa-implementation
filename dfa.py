@@ -155,14 +155,14 @@ class DFA:
         String affiliation check
         """
         self.__current_state = self.start_state
-        result = None
+        status = None
         for symbol in string:
-            result = self.__transition(symbol)
-            if result in [DFAStatus.UNKNOWN_SYMBOL_ERROR, DFAStatus.NO_TRANSITIONS]:
+            status = self.__transition(symbol)
+            if status in [DFAStatus.UNKNOWN_SYMBOL_ERROR, DFAStatus.NO_TRANSITIONS]:
                 colored_print("Rejected", Color.RED)
                 return False
 
-        if result == DFAStatus.NOT_REACHED_FINAL_STATE:
+        if status == DFAStatus.NOT_REACHED_FINAL_STATE:
             colored_print("Rejected", Color.RED)
             return False
 
