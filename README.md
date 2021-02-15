@@ -28,4 +28,6 @@ Sample program launch:
  Rejected
  >> ^Z
  Bye
+ 
+ $ |
 ```
