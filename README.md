@@ -10,6 +10,11 @@ As an example, two finite automata are created.
 -----
 Sample program launch:
 ```
+ $ python main.py c
+ The type of finite state machine you have selected 
+ is not included in the available ones: ['a', 'b']
+ Try again!
+ 
  $ python main.py b
  
  Your choice is: A nondeterministic finite automaton with 
