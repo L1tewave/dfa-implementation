@@ -1,15 +1,21 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple
+import re
 
 
-def uniqueness(container):
-    """
-    Checks if the container is unique.
+class Color(Enum):
+    RED = (0, "\033[91m")
+    GREEN = (1, "\033[92m")
 
-    In case of uniqueness it returns True
-    """
-    return len(container) == len(list(set(container)))
+    def __init__(self, identifier: int, ansi_escape_code: str) -> None:
+        self.id = identifier
+        self.ansi_escape_code = ansi_escape_code
+
+
+def colored_print(text: str, color: Color) -> None:
+    CEND = "\033[0m"
+    print(color.ansi_escape_code + text + CEND)
 
 
 class DFAStatus(Enum):
@@ -21,6 +27,15 @@ class DFAStatus(Enum):
     def __init__(self, identifier: int, message) -> None:
         self.id = identifier
         self.message = message
+
+
+def uniqueness(container):
+    """
+    Checks if the container is unique.
+
+    In case of uniqueness it returns True
+    """
+    return len(container) == len(list(set(container)))
 
 
 class DFA:
@@ -36,11 +51,10 @@ class DFA:
 
         self.__states = states
         self.__alphabet = alphabet
-        self.__transition_function = dict()
-        self.__make_tf_from_string(transition_table)
         self.__start_state = start_state
-        self.__current_state = None
         self.__accepted_states = accepted_states
+        self.__current_state = None
+        self.__transition_function = self.__make_transition_function(transition_table)
 
     @property
     def states(self) -> List[str]:
@@ -66,45 +80,58 @@ class DFA:
     def accepted_states(self) -> List[str]:
         return self.__accepted_states
 
-    @staticmethod
-    def data_valid(states: List[str], alphabet: List[str], start_state: str, accepted_states: List[str]) -> None:
-        """
-        Checking states, alphabet, final states for uniqueness,
-        initial state and final states for consistency with states
-        """
-        if not uniqueness(alphabet):
-            raise Exception("Some of symbols is defined twice, but the alphabet must be unique!")
-        if not uniqueness(states):
-            raise Exception("Some of states is defined twice, but they must be unique!")
-        if not uniqueness(accepted_states):
-            print("Warning. Final states are not unique.")
-        if start_state not in states:
-            raise Exception(f"Start state ({start_state}) does not correspond to any of the possible states: {states}!")
-
-        for s in accepted_states:
-            if s not in states:
-                raise Exception(f"Final state ({s}) does not correspond to any of the possible states: {states}!")
-
-    def __transition_valid(self, transition: str) -> None:
+    def __transition_valid(self, state: str, symbol: str, next_state: str) -> None:
         """
         Checking the transition to permissibility
         """
-        current_state, symbol, next_state = transition.split("-")
-
-        if current_state not in self.states:
-            raise Exception(f"Transmitted a non-existent state: {current_state}!")
+        if state not in self.states:
+            raise ValueError(f"Transmitted a non-existent state: {state}!")
 
         if next_state not in self.states:
-            raise Exception(f"Transmitted a non-existent state {next_state}!")
+            raise ValueError(f"Transmitted a non-existent state {next_state}!")
 
         if symbol not in self.alphabet:
-            raise Exception(f"A character ({symbol}) that is not in the alphabet is passed on!")
+            raise ValueError(f"A character ({symbol}) that is not in the alphabet is passed on!")
 
-        if (value := self.transition_function.get((current_state, symbol))) is not None:
-            if value != next_state:
-                raise Exception(f"Transition <{current_state}-{symbol}> is defined " +
-                                f"twice with different end states ({value} != {next_state})!")
-            print(f"Warning! Transition {transition} is defined twice")
+    def __add_transition(self, tf: Dict[Tuple[str, str], str], transition: str) -> None:
+        """
+        Adds a transition to the transition function if it matches
+
+        the set format and parameters of the finite automaton
+        """
+        if not re.findall(r"\w*-\w*-\w*", transition):
+            raise ValueError(f"The transition: {transition} is in an incorrect format!")
+
+        state, symbol, next_state = transition.split("-")
+
+        self.__transition_valid(state, symbol, next_state)
+
+        maybe_next_state = tf.get((state, symbol))
+
+        if maybe_next_state is None:
+            tf[(state, symbol)] = next_state
+            return
+        if maybe_next_state == next_state:
+            raise Warning(f"Transition <{transition}> is defined twice")
+
+        raise ValueError(f"Transition <{state}-{symbol}> is defined " +
+                         f"twice with different end states ({maybe_next_state} != {next_state})!")
+
+    def __make_transition_function(self, transition_table: str) -> Dict[Tuple[str, str], str]:
+        """
+        Making a transition function from a string of a set format:
+
+        state-symbol-next_state,state2-symbol2-next_state2,...,stateN-symbolN-next_stateN
+        """
+        tf = dict()
+        transitions = transition_table.split(",")
+
+        if len(transitions) == 0:
+            raise ValueError("Not a single transition has been transmitted!")
+
+        [self.__add_transition(tf, transition) for transition in transitions]
+
+        return tf
 
     def __transition(self, symbol: str) -> DFAStatus:
         """
@@ -123,20 +150,6 @@ class DFA:
 
         return DFAStatus.REACHED_FINAL_STATE
 
-    def __make_tf_from_string(self, string: str) -> None:
-        """
-        Forming a transition function from a string of a set format:
-
-        state-symbol-next_state,state2-symbol2-next_state2,...,stateN-symbolN-next_stateN
-        """
-        transitions = string.split(",")
-        for t in transitions:
-            self.__transition_valid(t)
-
-            current_state, symbol, next_state = t.split("-")
-
-            self.__transition_function[(current_state, symbol)] = next_state
-
     def check_ownership(self, string) -> bool:
         """
         String affiliation check
@@ -146,15 +159,34 @@ class DFA:
         for symbol in string:
             result = self.__transition(symbol)
             if result in [DFAStatus.UNKNOWN_SYMBOL_ERROR, DFAStatus.NO_TRANSITIONS]:
-                print(f"{string}: Rejected")
+                colored_print("Rejected", Color.RED)
                 return False
 
-        if DFAStatus.NOT_REACHED_FINAL_STATE == result:
-            print(f"{string}: Rejected")
+        if result == DFAStatus.NOT_REACHED_FINAL_STATE:
+            colored_print("Rejected", Color.RED)
             return False
 
-        print(f"{string}: Accepted")
+        colored_print("Accepted", Color.GREEN)
         return True
+
+    @staticmethod
+    def data_valid(states: List[str], alphabet: List[str], start_state: str, accepted_states: List[str]) -> None:
+        """
+        Checking states, alphabet, final states for uniqueness,
+        initial state and final states for consistency with states
+        """
+        if not uniqueness(alphabet):
+            raise ValueError("Some of symbols is defined twice, but the alphabet must be unique!")
+        if not uniqueness(states):
+            raise Exception("Some of states is defined twice, but they must be unique!")
+        if not uniqueness(accepted_states):
+            raise ValueError("Final states are not unique.")
+        if start_state not in states:
+            raise ValueError(
+                f"Start state ({start_state}) does not correspond to any of the possible states: {states}!")
+        for s in accepted_states:
+            if s not in states:
+                raise ValueError(f"Final state ({s}) does not correspond to any of the possible states: {states}!")
 
 
 alphabet_a = ['0', '1']
@@ -175,22 +207,20 @@ transition_table_a = \
     'q1101-0-qx010,q1101-1-qLOCK,' \
     'q1110-0-qxx00,q1110-1-qLOCK'
 
+dfa = DFA(states_a, alphabet_a, transition_table_a, start_state_a, accepted_states_a)
+
 alphabet_b = ['a', 'b', 'c']
 states_b = ['q0', 'q1', 'q2']
 accepted_states_b = ['q0', 'q2']
 start_state_b = 'q0'
-transition_table_b = \
-    'q0-a-q1,' \
-    'q1-b-q2,' \
-    'q2-a-q1,q2-c-q0'
+transition_table_b = 'q0-a-q1,q1-b-q2,q2-a-q1,q2-c-q0'
 
+nfa = DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
 
-class DFAFactory:
-
-    @staticmethod
-    def get_dfa(name: str) -> Optional[DFA]:
-        if name == "task a":
-            return DFA(states_a, alphabet_a, transition_table_a, start_state_a, accepted_states_a)
-        if name == "task b":
-            return DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
-        return None
+PREDEFINED_FINITE_AUTOMATA = {"task a": dfa, "task b": nfa}
+TASK_INFO = {
+    "task a": "A deterministic finite automaton admitting in the alphabet {0, 1} all strings "
+              "in which each block of five consecutive characters contains at least two 0's.",
+    "task b": "A nondeterministic finite automaton with the number of states not exceeding 3 "
+              "for the language {ab, abc}*."
+}
