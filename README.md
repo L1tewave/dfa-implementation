@@ -5,7 +5,7 @@ Python version >=3.8 is required to run this program
 -----
 
 A class representing a finite automaton is implemented. 
-As an example, two finite automata are created.
+As an example, two finite automata are created, which can also be run with JFLAP.
 
 -----
 Sample program launch:

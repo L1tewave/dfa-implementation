@@ -1,6 +1,6 @@
 import sys
 
-from dfa import PREDEFINED_FINITE_AUTOMATA, AVAILABLE_FINITE_AUTOMATA_TYPES, PFA_TYPE_INFO
+from dfa.examples import PREDEFINED_FINITE_AUTOMATA, AVAILABLE_FINITE_AUTOMATA_TYPES, PFA_TYPE_INFO
 
 # Program exit codes
 TOO_FEW_ARGS = -2
@@ -11,7 +11,9 @@ REQUIRED_ARGC = 2
 
 if __name__ == "__main__":
     if len(sys.argv) != REQUIRED_ARGC:
-        print("Required call format: main.py (a|b)\nTry again!")
+        print("Required call format: python main.py <type>\n"
+              "Example: python main.py a\n"
+              "Try again!")
         sys.exit(TOO_FEW_ARGS)
 
     finite_automation_type = sys.argv[1].lower()
@@ -24,14 +26,14 @@ if __name__ == "__main__":
     finite_automaton = PREDEFINED_FINITE_AUTOMATA[finite_automation_type]
 
     print(f"\nYour choice is: {PFA_TYPE_INFO[finite_automation_type]}\n")
-    print("Note: Press <Ctrl+C> or <Ctrl+Z> to exit from program")  # May not work in IDE
+    print("Note: Press <Ctrl+C> or <Ctrl+Z> to exit from program")  # May not work in IDE, try Ctrl+F2
 
     try:
         while True:
             string_to_check = input(">> ")
             finite_automaton.check_ownership(string_to_check)
     except KeyboardInterrupt:
-        pass
+        print()
     except EOFError:
         pass
     finally:

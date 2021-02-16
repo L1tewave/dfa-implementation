@@ -159,15 +159,24 @@ class DFA:
         for symbol in string:
             status = self.__transition(symbol)
             if status in [DFAStatus.UNKNOWN_SYMBOL_ERROR, DFAStatus.NO_TRANSITIONS]:
-                colored_print("Rejected", Color.RED)
-                return False
+                break
 
-        if status == DFAStatus.NOT_REACHED_FINAL_STATE:
+        if status != DFAStatus.REACHED_FINAL_STATE:
             colored_print("Rejected", Color.RED)
             return False
 
         colored_print("Accepted", Color.GREEN)
         return True
+
+    def get_string_representation_of_tf(self) -> str:
+        return "  ".join([f"{key}->{value}" for key, value in self.transition_function.items()])
+
+    def __repr__(self):
+        return f"states: {self.states}\n" \
+               f"alphabet: {self.alphabet}\n" \
+               f"start state: {self.start_state}\n" \
+               f"accepted states: {self.accepted_states}\n" \
+               f"transition function: {self.get_string_representation_of_tf()}"
 
     @staticmethod
     def data_valid(states: List[str], alphabet: List[str], start_state: str, accepted_states: List[str]) -> None:
@@ -178,50 +187,12 @@ class DFA:
         if not uniqueness(alphabet):
             raise ValueError("Some of symbols is defined twice, but the alphabet must be unique!")
         if not uniqueness(states):
-            raise Exception("Some of states is defined twice, but they must be unique!")
+            raise ValueError("Some of states is defined twice, but they must be unique!")
         if not uniqueness(accepted_states):
-            raise ValueError("Final states are not unique.")
+            raise Warning("Final states are not unique.")
         if start_state not in states:
-            raise ValueError(
-                f"Start state ({start_state}) does not correspond to any of the possible states: {states}!")
+            raise ValueError(f"Start state ({start_state}) does not correspond "
+                             f"to any of the possible states: {states}!")
         for s in accepted_states:
             if s not in states:
                 raise ValueError(f"Final state ({s}) does not correspond to any of the possible states: {states}!")
-
-
-alphabet_a = ['0', '1']
-states_a = ['qxx00', 'qx001', 'qx010', 'q0011', 'q0101', 'q1011',
-            'q0111', 'q0110', 'q1101', 'q1110', 'qLOCK', ]
-accepted_states_a = ['qxx00', 'qx001', 'qx010', 'q0011', 'q0101',
-                     'q1011', 'q0111', 'q0110', 'q1101', 'q1110', ]
-start_state_a = 'qxx00'
-transition_table_a = \
-    'qxx00-0-qxx00,qxx00-1-qx001,' \
-    'qx001-0-qx010,qx001-1-q0011,' \
-    'qx010-0-qxx00,qx010-1-q0101,' \
-    'q0011-0-q0110,q0011-1-q0111,' \
-    'q0101-0-qx010,q0101-1-q1011,' \
-    'q0110-0-qxx00,q0110-1-q1101,' \
-    'q0111-0-q1110,q0111-1-qLOCK,' \
-    'q1011-0-q0110,q1011-1-qLOCK,' \
-    'q1101-0-qx010,q1101-1-qLOCK,' \
-    'q1110-0-qxx00,q1110-1-qLOCK'
-
-dfa = DFA(states_a, alphabet_a, transition_table_a, start_state_a, accepted_states_a)
-
-alphabet_b = ['a', 'b', 'c']
-states_b = ['q0', 'q1', 'q2']
-accepted_states_b = ['q0', 'q2']
-start_state_b = 'q0'
-transition_table_b = 'q0-a-q1,q1-b-q2,q2-a-q1,q2-c-q0'
-
-nfa = DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
-
-PREDEFINED_FINITE_AUTOMATA = {"a": dfa, "b": nfa}
-AVAILABLE_FINITE_AUTOMATA_TYPES = ["a", "b"]
-PFA_TYPE_INFO = {
-    "a": "A deterministic finite automaton admitting in the alphabet {0, 1} all strings "
-         "in which each block of five consecutive characters contains at least two 0's.",
-    "b": "A nondeterministic finite automaton with the number of states not exceeding 3 "
-         "for the language {ab, abc}*."
-}
