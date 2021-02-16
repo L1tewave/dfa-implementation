@@ -29,7 +29,6 @@ start_state_b = 'q0'
 transition_table_b = 'q0-a-q1,q1-b-q2,q2-a-q1,q2-c-q0'
 
 nfa = DFA(states_b, alphabet_b, transition_table_b, start_state_b, accepted_states_b)
-{}.keys()
 PREDEFINED_FINITE_AUTOMATA: Dict[str, DFA] = {"a": dfa, "b": nfa}
 AVAILABLE_FINITE_AUTOMATA_TYPES = list(PREDEFINED_FINITE_AUTOMATA.keys())
 PFA_TYPE_INFO = {
