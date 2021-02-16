@@ -155,7 +155,8 @@ class DFA:
         String affiliation check
         """
         self.__current_state = self.start_state
-        status = None
+        status = DFAStatus.REACHED_FINAL_STATE if self.start_state in self.accepted_states \
+            else DFAStatus.NOT_REACHED_FINAL_STATE
         for symbol in string:
             status = self.__transition(symbol)
             if status in [DFAStatus.UNKNOWN_SYMBOL_ERROR, DFAStatus.NO_TRANSITIONS]:

@@ -23,10 +23,10 @@ if __name__ == "__main__":
               f"in the available ones: {AVAILABLE_FINITE_AUTOMATA_TYPES}\nTry again!")
         sys.exit(UNDEFINED_FINITE_AUTOMATON_TYPE)
 
-    finite_automaton = PREDEFINED_FINITE_AUTOMATA[finite_automation_type]
-
     print(f"\nYour choice is: {PFA_TYPE_INFO[finite_automation_type]}\n")
     print("Note: Press <Ctrl+C> or <Ctrl+Z> to exit from program")  # May not work in IDE, try Ctrl+F2
+
+    finite_automaton = PREDEFINED_FINITE_AUTOMATA[finite_automation_type]
 
     try:
         while True:
