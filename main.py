@@ -1,6 +1,6 @@
 import sys
 
-from dfa.examples import PREDEFINED_FINITE_AUTOMATA, AVAILABLE_FINITE_AUTOMATA_TYPES, PFA_TYPE_INFO
+from dfa.examples import PREDEFINED_FINITE_AUTOMATA, PFA_TYPES, PFA_INFO
 
 # Program exit codes
 TOO_FEW_ARGS = -2
@@ -18,12 +18,12 @@ if __name__ == "__main__":
 
     finite_automation_type = sys.argv[1].lower()
 
-    if finite_automation_type not in AVAILABLE_FINITE_AUTOMATA_TYPES:
+    if finite_automation_type not in PFA_TYPES:
         print(f"The type of finite state machine you have selected is not included "
-              f"in the available ones: {AVAILABLE_FINITE_AUTOMATA_TYPES}\nTry again!")
+              f"in the available ones: {PFA_TYPES}\nTry again!")
         sys.exit(UNDEFINED_FINITE_AUTOMATON_TYPE)
 
-    print(f"\nYour choice is: {PFA_TYPE_INFO[finite_automation_type]}\n")
+    print(f"\nYour choice is: {PFA_INFO[finite_automation_type]}\n")
     print("Note: Press <Ctrl+C> or <Ctrl+Z> to exit from program")  # May not work in IDE, try Ctrl+F2
 
     finite_automaton = PREDEFINED_FINITE_AUTOMATA[finite_automation_type]
