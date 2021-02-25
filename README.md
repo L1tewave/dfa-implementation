@@ -1,4 +1,4 @@
-# DFA-Implementation
+# dfa-implementation
 
 Python version >=3.8 is required to run this program
 
